@@ -3,5 +3,9 @@
             [adventofcode2021.core :refer :all]))
 
 (deftest day1-1-test
-  (is (= 7 (day1-1 "1-example.txt")))
-  (is (= 1665 (day1-1 "1.txt"))))
+  (is (= (day1-1 "1-example.txt") 7))
+  (is (= (day1-1 "1.txt") 1665)))
+
+(deftest day1-2-test
+  (is (= (day1-2 "1-example.txt") 5))
+  (is (= (day1-2 "1.txt") 1702)))
