@@ -7,16 +7,18 @@
   [name f]
   (map f (str/split-lines (slurp (io/resource name)))))
 
-(def count-increased
-  (comp
-    (partition 2 1)
-    (filter (partial apply <))))
+(defn count-increased
+  [v]
+  (->> v
+       (partition 2 1)
+       (filter (partial apply <))
+       (count)))
 
 (defn day1-1
   "--- Day 1: Sonar Sweep ---"
   [name]
   (let [v (inputs name #(Integer/parseInt %))]
-    (into [] count-increased v)))
+    (count-increased v)))
 
 (defn day1-2
   "--- Day 1 Part Two: Sonar Sweep ---"
@@ -39,9 +41,21 @@
     :up [pos (- depth step)]
     ))
 
-(defn day2-1
+(defn nav2
+  [[pos depth aim] [dir step]]
+  (condp = dir
+    :forward [(+ pos step) (+ depth (* aim step)) aim]
+    :down [pos depth (+ aim step)]
+    :up [pos depth (- aim step)]
+    ))
+
+(defn day2
   "--- Day 2: Dive! ---"
-  [name]
+  [fnav initval name]
   (let [v (inputs name day2-parse-row)
-        loc (reduce nav [0 0] v)]
-    (reduce * loc)))
+        loc (reduce fnav initval v)]
+    (* (loc 0) (loc 1))))
+
+(def day2-1 (partial day2 nav [0 0]))
+(def day2-2 (partial day2 nav2 [0 0 0]))
+
