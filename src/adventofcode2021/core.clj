@@ -59,3 +59,64 @@
 (def day2-1 (partial day2 nav [0 0]))
 (def day2-2 (partial day2 nav2 [0 0 0]))
 
+(defn parse-binary
+  [s]
+  (Integer/parseInt s 2))
+
+(defn freqs-binary
+  [coll]
+  (let [freqs (frequencies coll)]
+    [(get freqs \0 0) (get freqs \1 0)]))
+
+(defn most-common
+  [[zeros ones]]
+  (cond
+    (> ones zeros) \1
+    (< ones zeros) \0
+    :else \1))
+
+(defn day3-1
+  "--- Day 3: Binary Diagnostic"
+  [name]
+  (let [v (inputs name identity)
+        gamma (->> v
+                   (apply map (partial str))                ; transpose
+                   (map freqs-binary)
+                   (map most-common)
+                   (apply str)
+                   (parse-binary))
+        allones (dec (bit-set 0 (count (first v))))
+        epsilon (bit-and (bit-not gamma) allones)]
+    (* gamma epsilon)))
+
+(defn freqs-nth
+  [v n]
+  (->> v
+       (map #(nth % n))
+       (freqs-binary)))
+
+(defn least-common
+  [[zeros ones]]
+  (cond
+    (> ones zeros) \0
+    (< ones zeros) \1
+    :else \0))
+
+(defn find-rating
+  [v fcrit]
+  (loop [vv v
+         n 0]
+    (if (= 1 (count vv))
+      (parse-binary (first vv))
+      (let [freqs (freqs-nth vv n)
+            crit (fcrit freqs)
+            vv' (filter #(= crit (nth % n)) vv)]
+        (recur vv' (inc n))))))
+
+(defn day3-2
+  "--- Day 3 Part Two: Binary Diagnostic"
+  [name]
+  (let [v (inputs name identity)
+        generator-rating (find-rating v most-common)
+        scrubber-rating (find-rating v least-common)]
+    (* generator-rating scrubber-rating)))
