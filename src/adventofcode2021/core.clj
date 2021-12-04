@@ -142,12 +142,13 @@
   (map #(disj % number) board))
 
 (defn bingo?
+  "Returns board if bingo, nil if not."
   [board]
-  (some empty? board))
+  (when (some empty? board) board))
 
 (defn find-bingo
   [boards]
-  (some #(when (bingo? %) %) boards))
+  (some bingo? boards))
 
 (defn mark-number-all
   [boards number]
