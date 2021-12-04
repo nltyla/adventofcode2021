@@ -120,3 +120,55 @@
         generator-rating (find-rating v most-common)
         scrubber-rating (find-rating v least-common)]
     (* generator-rating scrubber-rating)))
+
+(defn parse-ints-into
+  [s re to]
+  (into to (map #(Integer/parseInt %) (str/split s re))))
+
+(defn parse-board
+  [ss]
+  (map #(parse-ints-into % #"\s+" []) ss))
+
+(defn setify
+  [board]
+  (map set board))
+
+(defn add-xposed
+  [board]
+  (setify (concat board (apply map vector board))))
+
+(defn mark-number
+  [board number]
+  (map #(disj % number) board))
+
+(defn bingo?
+  [board]
+  (some empty? board))
+
+(defn find-bingo
+  [boards]
+  (some #(when (bingo? %) %) boards))
+
+(defn mark-number-all
+  [boards number]
+  (map #(mark-number % number) boards))
+
+(defn winner-score
+  [board number]
+  (* number (reduce + (mapcat seq (take 5 board)))))
+
+(defn day4-1
+  "--- Day 4: Giant Squid ---"
+  [name]
+  (let [v (inputs name str/trim)
+        numbers (parse-ints-into (first v) #"," [])
+        board-strs (partition 5 6 (drop 2 v))
+        boards (map parse-board board-strs)
+        xboards (map add-xposed boards)]
+    (loop [numbers numbers
+           xboards xboards]
+      (let [num (first numbers)
+            xboards' (mark-number-all xboards num)]
+        (if-let [winner (find-bingo xboards')]
+          (winner-score winner num)
+          (recur (drop 1 numbers) xboards'))))))
