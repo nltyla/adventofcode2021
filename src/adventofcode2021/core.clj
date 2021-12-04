@@ -164,14 +164,29 @@
         boards (map parse-board board-strs)]
     [(parse-ints-into (first v) #"," []) (map add-xposed boards)]))
 
+(defn day4-1-reducer
+  [boards num]
+  (let [boards' (mark-number-all boards num)]
+    (if-let [winner (find-bingo boards')]
+      (reduced (winner-score winner num))
+      boards')))
+
 (defn day4-1
   "--- Day 4: Giant Squid ---"
   [name]
   (let [[numbers boards] (day4-inputs name)]
-    (loop [numbers numbers
-           boards boards]
-      (let [num (first numbers)
-            boards' (mark-number-all boards num)]
-        (if-let [winner (find-bingo boards')]
-          (winner-score winner num)
-          (recur (drop 1 numbers) boards'))))))
+    (reduce day4-1-reducer boards numbers)))
+
+(defn day4-2-reducer
+  [boards num]
+  (let [boards' (mark-number-all boards num)
+        boards'' (filter (complement bingo?) boards')]
+    (if (empty? boards'')
+      (reduced (winner-score (first boards') num))
+      boards'')))
+
+(defn day4-2
+  "--- Day 4 Part Two: Giant Squid ---"
+  [name]
+  (let [[numbers boards] (day4-inputs name)]
+    (reduce day4-2-reducer boards numbers)))
