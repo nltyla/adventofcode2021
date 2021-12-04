@@ -157,18 +157,21 @@
   [board number]
   (* number (reduce + (mapcat seq (take 5 board)))))
 
+(defn day4-inputs
+  [name]
+  (let [v (inputs name str/trim)
+        board-strs (partition 5 6 (drop 2 v))
+        boards (map parse-board board-strs)]
+    [(parse-ints-into (first v) #"," []) (map add-xposed boards)]))
+
 (defn day4-1
   "--- Day 4: Giant Squid ---"
   [name]
-  (let [v (inputs name str/trim)
-        numbers (parse-ints-into (first v) #"," [])
-        board-strs (partition 5 6 (drop 2 v))
-        boards (map parse-board board-strs)
-        xboards (map add-xposed boards)]
+  (let [[numbers boards] (day4-inputs name)]
     (loop [numbers numbers
-           xboards xboards]
+           boards boards]
       (let [num (first numbers)
-            xboards' (mark-number-all xboards num)]
-        (if-let [winner (find-bingo xboards')]
+            boards' (mark-number-all boards num)]
+        (if-let [winner (find-bingo boards')]
           (winner-score winner num)
-          (recur (drop 1 numbers) xboards'))))))
+          (recur (drop 1 numbers) boards'))))))
