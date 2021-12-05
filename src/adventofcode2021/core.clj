@@ -21,13 +21,13 @@
 (defn day1-1
   "--- Day 1: Sonar Sweep ---"
   [name]
-  (let [v (inputs name #(Integer/parseInt %))]
+  (let [v (inputs name parse-int)]
     (count-increased v)))
 
 (defn day1-2
   "--- Day 1 Part Two: Sonar Sweep ---"
   [name]
-  (let [v (inputs name #(Integer/parseInt %))]
+  (let [v (inputs name parse-int)]
     (->> v
          (partition 3 1)
          (map (partial reduce +))
@@ -127,7 +127,7 @@
 
 (defn parse-ints-into
   [s re to]
-  (into to (map #(Integer/parseInt %) (str/split s re))))
+  (into to (map parse-int (str/split s re))))
 
 (defn parse-board
   [ss]
