@@ -7,6 +7,10 @@
   [name f]
   (map f (str/split-lines (slurp (io/resource name)))))
 
+(defn parse-int
+  [s]
+  (Integer/parseInt s))
+
 (defn count-increased
   [v]
   (->> v
@@ -191,3 +195,25 @@
   [name]
   (let [[numbers boards] (day4-inputs name)]
     (reduce day4-2-reducer boards numbers)))
+
+(defn day5-parse
+  [s]
+  (let [[_ x0 y0 x1 y1] (re-matches #"(\d+),(\d+) -> (\d+),(\d+)" s)]
+    [[(parse-int x0) (parse-int y0)] [(parse-int x1) (parse-int y1)]]))
+
+(defn fill-horz-vert
+  [[[x0 y0] [x1 y1]]]
+  (cond (= x0 x1) (let [[y0 y1] (sort [y0 y1])]
+                    (for [y (range y0 (inc y1))] [x0 y]))
+        (= y0 y1) (let [[x0 x1] (sort [x0 x1])]
+                    (for [x (range x0 (inc x1))] [x y0]))
+        :else `()))
+
+(defn day5-1
+  "--- Day 5: Hydrothermal Venture ---"
+  [name]
+  (let [v (vec (inputs name day5-parse))
+        filled (mapcat fill-horz-vert v)
+        intersections (frequencies filled)
+        targets (filter #(>= (second %) 2) intersections)]
+    (count targets)))
