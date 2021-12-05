@@ -201,12 +201,12 @@
   (let [groups (re-matches #"(\d+),(\d+) -> (\d+),(\d+)" s)]
     (map parse-int (drop 1 groups))))
 
-(defn fill
+(defn draw
   [allow-diag [x0 y0 x1 y1]]
-  (if (= x0 x1)
+  (if (= x0 x1) ; vertical
     (let [[start end] (if (> y0 y1) [y1 y0] [y0 y1])]
       (for [y (range start (inc end))] [x0 y]))
-    (let [[startx starty endx endy] (if (> x0 x1) [x1 y1 x0 y0] [x0 y0 x1 y1])
+    (let [[startx starty endx endy] (if (> x0 x1) [x1 y1 x0 y0] [x0 y0 x1 y1]) ; horizontal or diagonal
           ystep (Integer/signum (- endy starty))]
       (if (or (zero? ystep) allow-diag)
         (for [x (range startx (inc endx)) :let [y (+ starty (* (- x startx) ystep))]] [x y])
@@ -214,12 +214,12 @@
 
 (defn day5-core
   "--- Day 5: Hydrothermal Venture ---"
-  [ffill name]
+  [fdraw name]
   (let [v (vec (inputs name day5-parse))
-        filled (mapcat ffill v)
+        filled (mapcat fdraw v)
         intersections (frequencies filled)
         targets (filter #(>= (second %) 2) intersections)]
     (count targets)))
 
-(def day5-1 (partial day5-core (partial fill false)))
-(def day5-2 (partial day5-core (partial fill true)))
+(def day5-1 (partial day5-core (partial draw false)))
+(def day5-2 (partial day5-core (partial draw true)))
