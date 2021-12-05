@@ -201,19 +201,25 @@
   (let [[_ x0 y0 x1 y1] (re-matches #"(\d+),(\d+) -> (\d+),(\d+)" s)]
     [[(parse-int x0) (parse-int y0)] [(parse-int x1) (parse-int y1)]]))
 
-(defn fill-horz-vert
-  [[[x0 y0] [x1 y1]]]
-  (cond (= x0 x1) (let [[y0 y1] (sort [y0 y1])]
-                    (for [y (range y0 (inc y1))] [x0 y]))
-        (= y0 y1) (let [[x0 x1] (sort [x0 x1])]
-                    (for [x (range x0 (inc x1))] [x y0]))
-        :else `()))
+(defn fill
+  [allow-diag [[x0 y0] [x1 y1]]]
+  (if (= x0 x1)
+    (let [[start end] (if (> y0 y1) [y1 y0] [y0 y1])]
+      (for [y (range start (inc end))] [x0 y]))
+    (let [[[startx starty] [endx endy]] (if (> x0 x1) [[x1 y1] [x0 y0]] [[x0 y0] [x1 y1]])
+          ystep (Integer/signum (- endy starty))]
+      (if (or (zero? ystep) allow-diag)
+        (for [x (range startx (inc endx)) :let [y (+ starty (* (- x startx) ystep))]] [x y])
+        `()))))
 
-(defn day5-1
+(defn day5-core
   "--- Day 5: Hydrothermal Venture ---"
-  [name]
+  [ffill name]
   (let [v (vec (inputs name day5-parse))
-        filled (mapcat fill-horz-vert v)
+        filled (mapcat ffill v)
         intersections (frequencies filled)
         targets (filter #(>= (second %) 2) intersections)]
     (count targets)))
+
+(def day5-1 (partial day5-core (partial fill false)))
+(def day5-2 (partial day5-core (partial fill true)))

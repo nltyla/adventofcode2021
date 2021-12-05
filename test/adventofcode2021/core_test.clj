@@ -36,4 +36,8 @@
 
 (deftest day5-1-test
   (is (= (day5-1 "5-example.txt") 5))
-  (is (= (day5-1 "5.txt") 6)))
+  (is (= (day5-1 "5.txt") 5690)))
+
+(deftest day5-2-test
+  (is (= (day5-2 "5-example.txt") 12))
+  (is (= (day5-2 "5.txt") 17741)))
