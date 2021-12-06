@@ -223,3 +223,22 @@
 
 (def day5-1 (partial day5-core (partial draw false)))
 (def day5-2 (partial day5-core (partial draw true)))
+
+(defn day6-1-reducer
+  [[fishes' births] fish]
+  (if (= 0 fish)
+    [(conj fishes' 6) (inc births)]
+    [(conj fishes' (dec fish)) births]))
+
+(defn advance
+  [fishes]
+  (let [[fishes' births] (reduce day6-1-reducer [[] 0] fishes)
+        bornfishes (repeat births 8)]
+    (concat fishes' bornfishes)))
+
+(defn day6-1
+  [name]
+  (let [v (inputs name identity)
+        fishes (map parse-int (str/split (first v) #","))
+        simulation (iterate advance fishes)]
+    (count (nth simulation 80))))
