@@ -203,7 +203,7 @@
 
 (defn draw
   [allow-diag [x0 y0 x1 y1]]
-  (if (= x0 x1) ; vertical
+  (if (= x0 x1)                                             ; vertical
     (let [[start end] (if (> y0 y1) [y1 y0] [y0 y1])]
       (for [y (range start (inc end))] [x0 y]))
     (let [[startx starty endx endy] (if (> x0 x1) [x1 y1 x0 y0] [x0 y0 x1 y1]) ; horizontal or diagonal
@@ -224,21 +224,22 @@
 (def day5-1 (partial day5-core (partial draw false)))
 (def day5-2 (partial day5-core (partial draw true)))
 
-(defn day6-1-reducer
-  [[fishes' births] fish]
-  (if (= 0 fish)
-    [(conj fishes' 6) (inc births)]
-    [(conj fishes' (dec fish)) births]))
+(defn day6-advance
+  [fishfreqs]
+  (let [parentfreq (first fishfreqs)
+        rotatedfreqs (conj (subvec fishfreqs 1) parentfreq)
+        fishfreqs' (update-in rotatedfreqs [6] + parentfreq)]
+    fishfreqs'))
 
-(defn advance
-  [fishes]
-  (let [[fishes' births] (reduce day6-1-reducer [[] 0] fishes)
-        bornfishes (repeat births 8)]
-    (concat fishes' bornfishes)))
-
-(defn day6-1
-  [name]
+(defn day6-core
+  [days name]
   (let [v (inputs name identity)
         fishes (map parse-int (str/split (first v) #","))
-        simulation (iterate advance fishes)]
-    (count (nth simulation 80))))
+        freqs (frequencies fishes)
+        fishfreqs (vec (map #(get freqs % 0) (range 9)))
+        simulation (iterate day6-advance fishfreqs)]
+    (reduce + (nth simulation days))
+    ))
+
+(def day6-1 (partial day6-core 80))
+(def day6-2 (partial day6-core 256))
