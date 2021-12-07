@@ -11,6 +11,10 @@
   [s]
   (Integer/parseInt s))
 
+(defn parse-ints-csv
+  [s]
+  (map parse-int (str/split s #",")))
+
 (defn count-increased
   [v]
   (->> v
@@ -233,13 +237,33 @@
 
 (defn day6-core
   [days name]
-  (let [v (inputs name identity)
-        fishes (map parse-int (str/split (first v) #","))
+  (let [fishes (first (inputs name parse-ints-csv))
         freqs (frequencies fishes)
         fishfreqs (vec (map #(get freqs % 0) (range 9)))
         simulation (iterate day6-advance fishfreqs)]
-    (reduce + (nth simulation days))
-    ))
+    (reduce + (nth simulation days))))
 
 (def day6-1 (partial day6-core 80))
 (def day6-2 (partial day6-core 256))
+
+(defn day7-1-cost
+  [p1 p2]
+  (Math/abs ^int (- p1 p2)))
+
+(defn fuel
+  [fcost crabs pos]
+  (transduce (map #(fcost pos %)) + crabs))
+
+(defn day7
+  [ffuel name]
+  (let [crabs (first (inputs name parse-ints-csv))
+        fuels (map #(ffuel crabs %) (range (apply min crabs) (apply max crabs)))]
+    (apply min fuels)))
+
+(defn day7-2-cost
+  [p1 p2]
+  (let [d (Math/abs ^int (- p1 p2))]
+    (/ (* d (inc d)) 2)))                                   ; sum of arithmetic series 1 + 2 + ... + d
+
+(def day7-1 (partial day7 (partial fuel day7-1-cost)))
+(def day7-2 (partial day7 (partial fuel day7-2-cost)))
