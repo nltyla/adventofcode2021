@@ -218,15 +218,15 @@
 
 (defn day5-core
   "--- Day 5: Hydrothermal Venture ---"
-  [fdraw name]
+  [allow-diag name]
   (let [v (vec (inputs name day5-parse))
-        filled (mapcat fdraw v)
+        filled (mapcat (partial draw allow-diag) v)
         intersections (frequencies filled)
         targets (filter #(>= (second %) 2) intersections)]
     (count targets)))
 
-(def day5-1 (partial day5-core (partial draw false)))
-(def day5-2 (partial day5-core (partial draw true)))
+(def day5-1 (partial day5-core false))
+(def day5-2 (partial day5-core true))
 
 (defn day6-advance
   [fishfreqs]
@@ -255,9 +255,9 @@
   (transduce (map #(fcost pos %)) + crabs))
 
 (defn day7
-  [ffuel name]
+  [fcost name]
   (let [crabs (first (inputs name parse-ints-csv))
-        fuels (map #(ffuel crabs %) (range (apply min crabs) (apply max crabs)))]
+        fuels (map #(fuel fcost crabs %) (range (apply min crabs) (apply max crabs)))]
     (apply min fuels)))
 
 (defn day7-2-cost
@@ -265,5 +265,5 @@
   (let [d (Math/abs ^int (- p1 p2))]
     (/ (* d (inc d)) 2)))                                   ; sum of arithmetic series 1 + 2 + ... + d
 
-(def day7-1 (partial day7 (partial fuel day7-1-cost)))
-(def day7-2 (partial day7 (partial fuel day7-2-cost)))
+(def day7-1 (partial day7 day7-1-cost))
+(def day7-2 (partial day7 day7-2-cost))
