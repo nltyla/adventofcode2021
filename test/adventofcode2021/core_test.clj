@@ -57,3 +57,10 @@
 (deftest day7-2-test
   (is (= (day7-2 "7-example.txt") 168))
   (is (= (day7-2 "7.txt") 99053143)))
+
+(deftest day8-1-test
+  (is (= (day8-1 "8-example.txt") 26))
+  (is (= (day8-1 "8.txt") 24)))
+
+(deftest day8-2-test
+  (is (= (day8-2 "8-example.txt") 26)))

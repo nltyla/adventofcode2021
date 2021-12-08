@@ -235,7 +235,8 @@
         fishfreqs' (update-in rotatedfreqs [6] + parentfreq)]
     fishfreqs'))
 
-(defn day6-core
+(defn day6
+  "--- Day 6: Lanternfish ---"
   [days name]
   (let [fishes (first (inputs name parse-ints-csv))
         freqs (frequencies fishes)
@@ -243,8 +244,8 @@
         simulation (iterate day6-advance fishfreqs)]
     (reduce + (nth simulation days))))
 
-(def day6-1 (partial day6-core 80))
-(def day6-2 (partial day6-core 256))
+(def day6-1 (partial day6 80))
+(def day6-2 (partial day6 256))
 
 (defn day7-1-cost
   [p1 p2]
@@ -255,6 +256,7 @@
   (transduce (map #(fcost pos %)) + crabs))
 
 (defn day7
+  "--- Day 7: The Treachery of Whales ---"
   [fcost name]
   (let [crabs (first (inputs name parse-ints-csv))
         fuels (map #(fuel fcost crabs %) (range (apply min crabs) (apply max crabs)))]
@@ -267,3 +269,36 @@
 
 (def day7-1 (partial day7 day7-1-cost))
 (def day7-2 (partial day7 day7-2-cost))
+
+(defn day8-parse
+  [s]
+  (let [[all displayed] (str/split s #" \| ")]
+    [(str/split all #" ") (str/split displayed #" ")]))
+
+(defn day8-1
+  "--- Day 8: Seven Segment Search ---"
+  [name]
+  (let [v (inputs name day8-parse)
+        displayed (map second v)
+        knowns #{2 4 3 7}
+        lengths (mapcat #(map count %) displayed)
+        known-lengths (filter knowns lengths)]
+    (count known-lengths)))
+
+(def digits {"abcdeg"  0
+             "ab"      1
+             "acdfg"   2
+             "abcdf"   3
+             "abef"    4
+             "bcdef"   5
+             "bcdefg"  6
+             "abd"     7
+             "abcdefg" 8
+             "abcdef"  9})
+
+(defn day8-2
+  [name]
+  (let [v (inputs name day8-parse)
+        displayed (map second v)
+        lengths (map #(map (fn [s] (digits (apply str (sort s)))) %) displayed)]
+    (println lengths)))
