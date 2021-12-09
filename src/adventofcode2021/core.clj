@@ -322,3 +322,30 @@
   (let [v (inputs name day8-parse)
         vals (map solve-display v)]
     (reduce + vals)))
+
+(defn day9-pad
+  [s]
+  (map #(parse-int (str %)) (str \9 s \9)))
+
+(defn risk-level
+  [top center bottom]
+  (let [target (second center)]
+    (if (and (< target (second top))
+             (< target (first center))
+             (< target (nth center 2))
+             (< target (second bottom)))
+      (inc target)
+      0)))
+
+(defn vert
+  [[top center bottom]]
+  (map risk-level (partition 3 1 top) (partition 3 1 center) (partition 3 1 bottom)))
+
+(defn day9-1
+  [name]
+  (let [v (inputs name day9-pad)
+        row9 (repeat (count (first v)) 9)
+        padded (concat [row9] v [row9])
+        horz (partition 3 1 padded)
+        risk-levels (mapcat vert horz)]
+    (reduce + risk-levels)))
