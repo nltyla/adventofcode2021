@@ -1,6 +1,7 @@
 (ns adventofcode2021.core
   (:require [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.set :as set]))
 
 (defn inputs
   "read file from resources, apply f to each line, return seq"
@@ -270,10 +271,14 @@
 (def day7-1 (partial day7 day7-1-cost))
 (def day7-2 (partial day7 day7-2-cost))
 
+(defn split-to-sets
+  [s]
+  (map set (str/split s #" ")))
+
 (defn day8-parse
   [s]
   (let [[all displayed] (str/split s #" \| ")]
-    [(str/split all #" ") (str/split displayed #" ")]))
+    [(split-to-sets all) (split-to-sets displayed)]))
 
 (defn day8-1
   "--- Day 8: Seven Segment Search ---"
@@ -285,20 +290,35 @@
         known-lengths (filter knowns lengths)]
     (count known-lengths)))
 
-(def digits {"abcdeg"  0
-             "ab"      1
-             "acdfg"   2
-             "abcdf"   3
-             "abef"    4
-             "bcdef"   5
-             "bcdefg"  6
-             "abd"     7
-             "abcdefg" 8
-             "abcdef"  9})
+(defn find069
+  [digs1478 dig]
+  (let [seg (first (set/difference (digs1478 8) dig))]
+    (cond
+      (contains? (digs1478 1) seg) [6 dig]
+      (contains? (digs1478 4) seg) [0 dig]
+      :else [9 dig])))
+
+(defn find235
+  [digs0146789 dig]
+  (cond
+    (empty? (set/difference (digs0146789 7) dig)) [3 dig]
+    (= 7 (count (set/union (digs0146789 4) dig))) [2 dig]
+    :else [5 dig]))
+
+(defn solve-display
+  [[all displayed]]
+  (let [by-seg-count (group-by count all)
+        digs1478 (assoc {} 1 (first (by-seg-count 2))
+                           4 (first (by-seg-count 4))
+                           7 (first (by-seg-count 3))
+                           8 (first (by-seg-count 7)))
+        digs0146789 (apply conj digs1478 (map #(find069 digs1478 %) (by-seg-count 6)))
+        digs0123456789 (apply conj digs0146789 (map #(find235 digs0146789 %) (by-seg-count 5)))
+        segs-to-dig (set/map-invert digs0123456789)]
+    (parse-int (apply str (map segs-to-dig displayed)))))
 
 (defn day8-2
   [name]
   (let [v (inputs name day8-parse)
-        displayed (map second v)
-        lengths (map #(map (fn [s] (digits (apply str (sort s)))) %) displayed)]
-    (println lengths)))
+        vals (map solve-display v)]
+    (reduce + vals)))
