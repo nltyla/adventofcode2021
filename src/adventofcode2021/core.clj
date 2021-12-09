@@ -291,29 +291,29 @@
     (count known-lengths)))
 
 (defn find069
-  [digs1478 dig]
-  (let [seg (first (set/difference (digs1478 8) dig))]
+  [digs dig]
+  (let [seg (first (set/difference (digs 8) dig))]
     (cond
-      (contains? (digs1478 1) seg) [6 dig]
-      (contains? (digs1478 4) seg) [0 dig]
-      :else [9 dig])))
+      (contains? (digs 1) seg) (assoc digs 6 dig)
+      (contains? (digs 4) seg) (assoc digs 0 dig)
+      :else (assoc digs 9 dig))))
 
 (defn find235
-  [digs0146789 dig]
+  [digs dig]
   (cond
-    (empty? (set/difference (digs0146789 7) dig)) [3 dig]
-    (= 7 (count (set/union (digs0146789 4) dig))) [2 dig]
-    :else [5 dig]))
+    (empty? (set/difference (digs 7) dig)) (assoc digs 3 dig)
+    (= 7 (count (set/union (digs 4) dig))) (assoc digs 2 dig)
+    :else (assoc digs 5 dig)))
 
 (defn solve-display
   [[all displayed]]
   (let [by-seg-count (group-by count all)
-        digs1478 (assoc {} 1 (first (by-seg-count 2))
-                           4 (first (by-seg-count 4))
-                           7 (first (by-seg-count 3))
-                           8 (first (by-seg-count 7)))
-        digs0146789 (apply conj digs1478 (map #(find069 digs1478 %) (by-seg-count 6)))
-        digs0123456789 (apply conj digs0146789 (map #(find235 digs0146789 %) (by-seg-count 5)))
+        digs1478 {1 (first (by-seg-count 2))
+                  4 (first (by-seg-count 4))
+                  7 (first (by-seg-count 3))
+                  8 (first (by-seg-count 7))}
+        digs0146789 (reduce find069 digs1478 (by-seg-count 6))
+        digs0123456789 (reduce find235 digs0146789 (by-seg-count 5))
         segs-to-dig (set/map-invert digs0123456789)]
     (parse-int (apply str (map segs-to-dig displayed)))))
 
