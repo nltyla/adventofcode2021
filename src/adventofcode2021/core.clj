@@ -318,6 +318,7 @@
     (parse-int (apply str (map segs-to-dig displayed)))))
 
 (defn day8-2
+  "--- Day 8 Part Two: Seven Segment Search ---"
   [name]
   (let [v (inputs name day8-parse)
         vals (map solve-display v)]
@@ -342,6 +343,7 @@
   (map risk-level (partition 3 1 top) (partition 3 1 center) (partition 3 1 bottom)))
 
 (defn day9-1
+  "--- Day 9: Smoke Basin ---"
   [name]
   (let [v (inputs name day9-pad)
         row9 (repeat (count (first v)) 9)
@@ -369,10 +371,10 @@
         (fill4 [(dec row) col])
         (fill4 [row (dec col)])
         (fill4 [row (inc col)])
-        (fill4 [(inc row) col])
-        )))
+        (fill4 [(inc row) col]))))
 
 (defn day9-2
+  "--- Day 9 Part Two: Smoke Basin ---"
   [name]
   (let [v (inputs name day9-pad)
         rowend (dec (count v))
@@ -386,7 +388,5 @@
                             (let [[m count] (fill4 [m 0] coord)]
                               [m (conj counts count)]))
                           [padded []]
-                          coords)
-        ]
+                          coords)]
     (reduce * (take 3 (reverse (sort risk-levels))))))
-
