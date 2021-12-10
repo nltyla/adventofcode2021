@@ -325,7 +325,7 @@
 
 (defn day9-pad
   [s]
-  (map #(parse-int (str %)) (str \9 s \9)))
+  (vec (map #(parse-int (str %)) (str \9 s \9))))
 
 (defn risk-level
   [top center bottom]
@@ -349,3 +349,44 @@
         horz (partition 3 1 padded)
         risk-levels (mapcat vert horz)]
     (reduce + risk-levels)))
+
+(defn mget
+  [m row col]
+  (-> m
+      (nth row)
+      (nth col)))
+
+(defn mupdate
+  [m row col f]
+  (update-in m [row col] f))
+
+(defn fill4
+  "Returns [m' count]"
+  [[m cnt] [row col]]
+  (if (= 9 (mget m row col))
+    [m cnt]
+    (-> [(mupdate m row col (constantly 9)) (inc cnt)]
+        (fill4 [(dec row) col])
+        (fill4 [row (dec col)])
+        (fill4 [row (inc col)])
+        (fill4 [(inc row) col])
+        )))
+
+(defn day9-2
+  [name]
+  (let [v (inputs name day9-pad)
+        rowend (dec (count v))
+        colend (dec (count (first v)))
+        row9 (vec (repeat colend 9))
+        padded (vec (concat [row9] v [row9]))
+        coords (for [row (range 1 rowend) col (range 1 colend)] [row col])
+        [_ risk-levels] (reduce
+                          (fn
+                            [[m counts] coord]
+                            (let [[m count] (fill4 [m 0] coord)]
+                              [m (conj counts count)]))
+                          [padded []]
+                          coords)
+        ]
+    (reduce * (take 3 (reverse (sort risk-levels))))))
+
