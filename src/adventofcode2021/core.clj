@@ -402,13 +402,12 @@
         state)
       (if (= tok (first s))
         [status (rest s) autocomplete]
-        [tok s (conj autocomplete tok)]))))
+        [tok s autocomplete]))))
 
 (defn parse-pairs
   [state]
-  (let [[status s autocomplete] state]
-    (println autocomplete)
-    (if (some? status)
+  (let [[status s _] state]
+     (if (some? status)
       state
       (let [tok (first s)]
         (if (contains? pairs tok)
@@ -423,7 +422,7 @@
 
 (defn score-line
   [s]
-  (let [[status s autocomplete] (parse-pairs [nil s []])]
+  (let [[status s _] (parse-pairs [nil s []])]
     (if (and (some? status)
              (not (empty? s)))
       (day10-score (first s))
@@ -444,11 +443,10 @@
 
 (defn day10-2-score-line
   [s]
-  (let [[status s autocomplete] (parse-pairs [nil s []])]
-    (if (and (some? status)
-             (not (empty? s)))
+  (let [[status _ autocomplete] (parse-pairs [nil s []])]
+    (if (empty? autocomplete)
       0
-      (day10-2-score autocomplete))))
+      (day10-2-score (cons status autocomplete)))))
 
 (defn day10-2
   "--- Day 10 Part Two: Syntax Scoring ---"
