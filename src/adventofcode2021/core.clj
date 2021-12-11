@@ -395,16 +395,19 @@
 
 (defn consume
   [state tok]
-  (let [[status s] state]
+  (let [[status s autocomplete] state]
     (if (some? status)
-      state
+      (if (empty? s)
+        [status s (conj autocomplete tok)]
+        state)
       (if (= tok (first s))
-        [status (rest s)]
-        [tok s]))))
+        [status (rest s) autocomplete]
+        [tok s (conj autocomplete tok)]))))
 
 (defn parse-pairs
   [state]
-  (let [[status s] state]
+  (let [[status s autocomplete] state]
+    (println autocomplete)
     (if (some? status)
       state
       (let [tok (first s)]
@@ -420,7 +423,7 @@
 
 (defn score-line
   [s]
-  (let [[status s] (parse-pairs [nil s])]
+  (let [[status s autocomplete] (parse-pairs [nil s []])]
     (if (and (some? status)
              (not (empty? s)))
       (day10-score (first s))
@@ -432,3 +435,25 @@
   (let [v (inputs name identity)
         scores (map score-line v)]
     (reduce + scores)))
+
+(def day10-2-scores { \) 1 \] 2 \} 3 \> 4 })
+
+(defn day10-2-score
+  [s]
+  (reduce (fn [acc v] (+ (* acc 5) (day10-2-scores v))) 0 s))
+
+(defn day10-2-score-line
+  [s]
+  (let [[status s autocomplete] (parse-pairs [nil s []])]
+    (if (and (some? status)
+             (not (empty? s)))
+      0
+      (day10-2-score autocomplete))))
+
+(defn day10-2
+  "--- Day 10 Part Two: Syntax Scoring ---"
+  [name]
+  (let [v (inputs name identity)
+        scores (map day10-2-score-line v)
+        clean-scores (sort (filter (complement zero?) scores))]
+    (nth clean-scores (/ (count clean-scores) 2))))
