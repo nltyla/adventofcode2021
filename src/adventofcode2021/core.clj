@@ -390,3 +390,45 @@
                           [padded []]
                           coords)]
     (reduce * (take 3 (reverse (sort risk-levels))))))
+
+(def pairs {\[ \] \{ \} \( \) \< \>})
+
+(defn consume
+  [state tok]
+  (let [[status s] state]
+    (if (some? status)
+      state
+      (if (= tok (first s))
+        [status (rest s)]
+        [tok s]))))
+
+(defn parse-pairs
+  [state]
+  (let [[status s] state]
+    (if (some? status)
+      state
+      (let [tok (first s)]
+        (if (contains? pairs tok)
+          (-> state
+              (consume tok)
+              (parse-pairs)
+              (consume (pairs tok))
+              (parse-pairs))
+          state)))))
+
+(def day10-score {\) 3 \] 57 \} 1197 \> 25137})
+
+(defn score-line
+  [s]
+  (let [[status s] (parse-pairs [nil s])]
+    (if (and (some? status)
+             (not (empty? s)))
+      (day10-score (first s))
+      0)))
+
+(defn day10-1
+  "--- Day 10: Syntax Scoring ---"
+  [name]
+  (let [v (inputs name identity)
+        scores (map score-line v)]
+    (reduce + scores)))
