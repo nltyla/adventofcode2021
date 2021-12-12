@@ -407,7 +407,7 @@
 (defn parse-pairs
   [state]
   (let [[status s _] state]
-     (if (some? status)
+    (if (some? status)
       state
       (let [tok (first s)]
         (if (contains? pairs tok)
@@ -435,7 +435,7 @@
         scores (map score-line v)]
     (reduce + scores)))
 
-(def day10-2-scores { \) 1 \] 2 \} 3 \> 4 })
+(def day10-2-scores {\) 1 \] 2 \} 3 \> 4})
 
 (defn day10-2-score
   [s]
@@ -455,3 +455,61 @@
         scores (map day10-2-score-line v)
         clean-scores (sort (filter (complement zero?) scores))]
     (nth clean-scores (/ (count clean-scores) 2))))
+
+(defn day11-parse
+  [s]
+  (vec (map #(parse-int (str %)) s)))
+
+(defn minc
+  [m]
+  (reduce-kv (fn [acc k _] (update acc k inc)) m m))
+
+(defn find-flashers
+  [m]
+  (map first (filter #(> (second %) 9) m)))
+
+(defn incpos [n] (if (pos? n) (inc n) n))
+
+(defn update-if-present
+  [m k f]
+  (if (contains? m k)
+    (update m k f)
+    m))
+
+(defn mincsurround
+  [m [row col]]
+  (-> m
+      (update-if-present [(dec row) (dec col)] incpos)
+      (update-if-present [(dec row) col] incpos)
+      (update-if-present [(dec row) (inc col)] incpos)
+      (update-if-present [row (dec col)] incpos)
+      (assoc [row col] 0)
+      (update-if-present [row (inc col)] incpos)
+      (update-if-present [(inc row) (dec col)] incpos)
+      (update-if-present [(inc row) col] incpos)
+      (update-if-present [(inc row) (inc col)] incpos)))
+
+(defn flash
+  [m flashcount]
+  (let [flashers (find-flashers m)]
+    (if (empty? flashers)
+      [m flashcount]
+      (let [m' (reduce #(mincsurround %1 %2) m flashers)
+            flashcount' (+ flashcount (count flashers))]
+        (recur m' flashcount')))))
+
+(defn day11-step
+  [[m flashcount]]
+  (flash (minc m) flashcount))
+
+(defn day11-as-map2
+  [m]
+  (reduce-kv (fn [acc row line] (reduce-kv (fn [acc col v] (assoc acc [row col] v)) acc line)) {} m))
+
+(defn day11-1
+  "--- Day 11: Dumbo Octopus ---"
+  [name]
+  (let [v (vec (inputs name day11-parse))
+        m (day11-as-map2 v)
+        simulation (iterate day11-step [m 0])]
+    (second (nth simulation 100))))
