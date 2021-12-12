@@ -502,7 +502,7 @@
   [[m flashcount]]
   (flash (minc m) flashcount))
 
-(defn day11-as-map2
+(defn day11-as-map
   [m]
   (reduce-kv (fn [acc row line] (reduce-kv (fn [acc col v] (assoc acc [row col] v)) acc line)) {} m))
 
@@ -510,6 +510,14 @@
   "--- Day 11: Dumbo Octopus ---"
   [name]
   (let [v (vec (inputs name day11-parse))
-        m (day11-as-map2 v)
+        m (day11-as-map v)
         simulation (iterate day11-step [m 0])]
     (second (nth simulation 100))))
+
+(defn day11-2
+  "--- Day 11 Part Two: Dumbo Octopus ---"
+  [name]
+  (let [v (vec (inputs name day11-parse))
+        m (day11-as-map v)
+        simulation (iterate day11-step [m 0])]
+    (inc (count (take-while #(not= 100 %) (map #(- (second (second %)) (second (first %))) (partition 2 1 simulation)))))))
