@@ -522,6 +522,10 @@
         simulation (iterate day11-step [m 0])]
     (inc (count (take-while #(not= 100 %) (map #(- (second (second %)) (second (first %))) (partition 2 1 simulation)))))))
 
+(defn small?
+  [s]
+  (= s (str/lower-case s)))
+
 (defn large?
   [s]
   (= s (str/upper-case s)))
@@ -530,25 +534,45 @@
   [path]
   (= (peek path) "end"))
 
+(defn day12-1-allowed?
+  [path to]
+  (or (large? to)
+      (not (contains? (set path) to))))
+
+(defn day12-2-allowed?
+  [path to]
+  (or (large? to)
+      (and (not= to "start")
+           (let [smalls (filter small? path)
+                 freqs (frequencies smalls)]
+             (and (not= (freqs to) 2)
+                  (let [by-freq (group-by second freqs)]
+                    (< (count (get by-freq 2 [])) 2)))))))
+
 (defn find-paths
-  [[connections path paths :as in]]
+  [[connections fallowed? path paths :as in]]
   (if (end? path)
-    [connections path (conj paths path)]
+    [connections fallowed? path (conj paths path)]
     (let [exits (connections (peek path))
-          tos (filter #(or (large? %) (not (contains? (set path) %))) exits)]
+          tos (filter (partial fallowed? path) exits)]
       (reduce
         (fn
-          [[_ _ paths] to]
-            (find-paths [connections (conj path to) paths]))
+          [[_ _ _ paths] to]
+          (find-paths [connections fallowed? (conj path to) paths]))
         in
         tos))))
 
-(defn day12-1
+(defn day12
   "--- Day 12: Passage Pathing ---"
-  [name]
+  [fallowed? name]
   (let [v (inputs name #(str/split % #"-"))
         connections (reduce (fn [acc [a b]] (-> acc
                                                 (update a (fnil conj []) b)
                                                 (update b (fnil conj []) a))) {} v)
-        [_ _ paths] (find-paths [connections ["start"] [] []])]
+        [_ _ _ paths] (find-paths [connections fallowed? ["start"] [] []])]
     (count paths)))
+
+(def day12-1 (partial day12 day12-1-allowed?))
+
+; TODO really slow (30 secs), try memoization for second occurrences
+(def day12-2 (partial day12 day12-2-allowed?))
