@@ -521,3 +521,34 @@
         m (day11-as-map v)
         simulation (iterate day11-step [m 0])]
     (inc (count (take-while #(not= 100 %) (map #(- (second (second %)) (second (first %))) (partition 2 1 simulation)))))))
+
+(defn large?
+  [s]
+  (= s (str/upper-case s)))
+
+(defn end?
+  [path]
+  (= (peek path) "end"))
+
+(defn find-paths
+  [[connections path paths :as in]]
+  (if (end? path)
+    [connections path (conj paths path)]
+    (let [exits (connections (peek path))
+          tos (filter #(or (large? %) (not (contains? (set path) %))) exits)]
+      (reduce
+        (fn
+          [[_ _ paths] to]
+            (find-paths [connections (conj path to) paths]))
+        in
+        tos))))
+
+(defn day12-1
+  "--- Day 12: Passage Pathing ---"
+  [name]
+  (let [v (inputs name #(str/split % #"-"))
+        connections (reduce (fn [acc [a b]] (-> acc
+                                                (update a (fnil conj []) b)
+                                                (update b (fnil conj []) a))) {} v)
+        [_ _ paths] (find-paths [connections ["start"] [] []])]
+    (count paths)))
