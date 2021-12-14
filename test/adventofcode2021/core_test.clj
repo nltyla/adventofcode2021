@@ -101,3 +101,7 @@
   (is (= (day12-2 "12-example2.txt") 103))
   (is (= (day12-2 "12-example3.txt") 3509))
   (is (= (day12-2 "12.txt") 92111)))
+
+(deftest day13-1-test
+  (is (= (day13-1 "13-example.txt") 17))
+  (is (= (day13-1 "13.txt") 724)))

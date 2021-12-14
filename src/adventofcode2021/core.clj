@@ -576,3 +576,30 @@
 
 ; TODO really slow (30 secs), try memoization for second occurrences
 (def day12-2 (partial day12 day12-2-allowed?))
+
+(defn parse-coords
+  [s]
+  (let [groups (re-matches #"(\d+),(\d+)" s)]
+    (vec (map parse-int (drop 1 groups)))))
+
+(defn mirror
+  [n mirr]
+  (if (>= n mirr) (+ (- mirr n) mirr) n))
+
+(defn parse-folds
+  [s]
+  (let [[_ xy d] (re-matches #"fold along ([xy])=(\d+)" s)
+        v (parse-int d)]
+    (if (= xy "x")
+      (fn [[x y]] [(mirror x v) y])
+      (fn [[x y]] [x (mirror y v)]))))
+
+(defn day13-1
+  "--- Day 13: Transparent Origami ---"
+  [name]
+  (let [v (inputs name identity)
+        [coords folds] (split-with not-empty v)
+        coords (map parse-coords coords)
+        ffolds (map parse-folds (rest folds))
+        folded (map (first ffolds) coords)]
+    (count (distinct folded))))
