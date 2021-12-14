@@ -601,5 +601,21 @@
         [coords folds] (split-with not-empty v)
         coords (map parse-coords coords)
         ffolds (map parse-folds (rest folds))
-        folded (map (first ffolds) coords)]
-    (count (distinct folded))))
+        folded (set (map (first ffolds) coords))]
+    (count folded)))
+
+(defn day13-2
+  "--- Day 13 Part Two: Transparent Origami ---"
+  [name]
+  (let [v (inputs name identity)
+        [coords folds] (split-with not-empty v)
+        coords (map parse-coords coords)
+        ffolds (map parse-folds (rest folds))
+        folded (set (reduce (fn [acc f] (map f acc)) coords ffolds))
+        [maxx maxy] (reduce (fn [[mx my] [x y]] [(max mx x) (max my y)]) folded)]
+    (dotimes [y (inc maxy)]
+      (dotimes [x (inc maxx)]
+        (if (contains? folded [x y])
+          (print \#)
+          (print " ")))
+      (newline))))
