@@ -619,3 +619,28 @@
           (print \#)
           (print " ")))
       (newline))))
+
+(defn day14-parse
+  [s]
+  (let [[_ from to] (re-matches #"(..) -> (.)" s)]
+    [(seq from) (first to)]))
+
+(defn day14-1-step
+  [rules polymer]
+  (let [pairs (partition 2 1 polymer)
+        interposeds (map #(apply str (interpose (rules %) %)) pairs)
+        polymer' (reduce #(str %1 (apply str (rest %2))) (first interposeds) (rest interposeds))]
+    polymer'))
+
+(defn day14-1
+  "--- Day 14: Extended Polymerization ---"
+  [name]
+  (let [v (inputs name identity)
+        polymer (first v)
+        rules (reduce #(apply assoc %1 (day14-parse %2)) {} (nnext v))
+        simulation (iterate (partial day14-1-step rules) polymer)
+        polymer10 (nth simulation 10)
+        freqs (frequencies polymer10)
+        minfreq (apply min (vals freqs))
+        maxfreq (apply max (vals freqs))]
+    (- maxfreq minfreq)))
