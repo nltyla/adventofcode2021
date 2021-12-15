@@ -618,29 +618,48 @@
         (if (contains? folded [x y])
           (print \#)
           (print " ")))
-      (newline))))
+      (newline))
+    (count folded)))
 
 (defn day14-parse
   [s]
   (let [[_ from to] (re-matches #"(..) -> (.)" s)]
-    [(seq from) (first to)]))
+    [from (first to)]))
+
+(defn split-pair
+  [rules pair]
+  (let [between (rules pair)
+        p1 (str (first pair) between)
+        p2 (str between (second pair))]
+    [p1 p2 between]))
+
+(defn update-freqs
+  [rules [single-freqs pair-freqs] pair freq]
+  (let [[p1 p2 between] (split-pair rules pair)
+        single-freqs' (update single-freqs between (fnil + 0) freq)
+        pair-freqs' (-> pair-freqs
+                        (update p1 (fnil + 0) freq)
+                        (update p2 (fnil + 0) freq)
+                        (update pair - freq))]
+    [single-freqs' pair-freqs']))
 
 (defn day14-1-step
-  [rules polymer]
-  (let [pairs (partition 2 1 polymer)
-        interposeds (map #(apply str (interpose (rules %) %)) pairs)
-        polymer' (reduce #(str %1 (apply str (rest %2))) (first interposeds) (rest interposeds))]
-    polymer'))
+  [rules [single-freqs pair-freqs]]
+  (reduce-kv (partial update-freqs rules) [single-freqs pair-freqs] pair-freqs))
 
-(defn day14-1
+(defn day14
   "--- Day 14: Extended Polymerization ---"
-  [name]
+  [iters name]
   (let [v (inputs name identity)
         polymer (first v)
+        single-freqs (frequencies polymer)
+        pair-freqs (frequencies (map #(apply str %) (partition 2 1 polymer)))
         rules (reduce #(apply assoc %1 (day14-parse %2)) {} (nnext v))
-        simulation (iterate (partial day14-1-step rules) polymer)
-        polymer10 (nth simulation 10)
-        freqs (frequencies polymer10)
-        minfreq (apply min (vals freqs))
-        maxfreq (apply max (vals freqs))]
+        simulation (iterate (partial day14-1-step rules) [single-freqs pair-freqs])
+        [single-freqs' _] (nth simulation iters)
+        minfreq (apply min (vals single-freqs'))
+        maxfreq (apply max (vals single-freqs'))]
     (- maxfreq minfreq)))
+
+(def day14-1 (partial day14 10))
+(def day14-2 (partial day14 40))

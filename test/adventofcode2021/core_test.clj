@@ -107,8 +107,12 @@
   (is (= (day13-1 "13.txt") 724)))
 
 (deftest day13-2-test
-  (is (= (day13-2 "13.txt") nil)))
+  (is (= (day13-2 "13.txt") 95)))
 
 (deftest day14-1-test
   (is (= (day14-1 "14-example.txt") 1588))
   (is (= (day14-1 "14.txt") 2321)))
+
+(deftest day14-2-test
+  (is (= (day14-2 "14-example.txt") 2188189693529))
+  (is (= (day14-2 "14.txt") 2399822193707)))
