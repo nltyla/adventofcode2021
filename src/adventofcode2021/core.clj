@@ -663,3 +663,35 @@
 
 (def day14-1 (partial day14 10))
 (def day14-2 (partial day14 40))
+
+(defn move
+  [m [row col :as p] cumrisk visitedset minrisk]
+  (let [risk (m p)]
+    (if (or (contains? visitedset p)
+            (nil? risk))
+      minrisk
+      (let [cumrisk' (+ cumrisk risk)
+            visitedset' (conj visitedset p)]
+        ;(println p cumrisk' visitedset' minrisk)
+        (if (> cumrisk' minrisk)
+          minrisk
+          (if (= [99 99] p)
+            (let [minrisk' (min minrisk cumrisk')]
+              (prn minrisk')
+              minrisk')
+            (let [
+                  minriskright (move m [row (inc col)] cumrisk' visitedset' minrisk)
+                  minriskdown (move m [(inc row) col] cumrisk' visitedset' minriskright)
+                  minriskup (move m [(dec row) col] cumrisk' visitedset' minriskdown)
+                  minriskleft (move m [row (dec col)] cumrisk' visitedset' minriskup)
+                  ]
+              minriskleft)))))))
+
+(defn day15-1
+  "--- Day 15: Chiton ---"
+  [name]
+  (let [v (vec (inputs name day11-parse))
+        m (day11-as-map v)
+        minrisk (move m [0 0] 0 #{} 100000)]
+    (println minrisk)
+    minrisk))
