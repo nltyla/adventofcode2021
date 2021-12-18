@@ -667,10 +667,22 @@
 
 (def INF Integer/MAX_VALUE)
 
+(defn day15-risk
+  [m dim [row col]]
+  (let [p [(mod row dim) (mod col dim)]
+        increment (+ (quot row dim) (quot col dim))
+        res (+ (m p) increment)]
+    (if (> res 9)
+      (- res 9)
+      res)))
+
 (defn move
   "Dijkstra's algorithm"
-  [m start dest]
-  (let [q (reduce (fn [acc v] (assoc acc v INF)) (priority-map) (keys m))]
+  [factor m dim]
+  (let [start [0 0]
+        dim' (* dim factor)
+        dest [(dec dim') (dec dim')]
+        q (into (priority-map) (for [row (range dim') col (range dim')] [[row col] INF]))]
     (loop [Q (assoc q start 0)]
       (let [[[row col :as u] distu] (first Q)
             Q' (pop Q)
@@ -678,7 +690,8 @@
                                                  [row (dec col)]
                                                  [row (inc col)]
                                                  [(inc row) col]])
-            Q'' (reduce (fn [qq v] (let [alt (+ distu (m v))]
+            Q'' (reduce (fn [qq v] (let [distv (day15-risk m dim v)
+                                         alt (+ distu distv)]
                                      (update qq v min alt)))
                         Q'
                         neighbors)]
@@ -686,11 +699,14 @@
           distu
           (recur Q''))))))
 
-(defn day15-1
+(defn day15
   "--- Day 15: Chiton ---"
-  [name]
+  [factor name]
   (let [v (vec (inputs name day11-parse))
         m (day11-as-map v)
-        dim (dec (count v))
-        minrisk (move m [0 0] [dim dim])]
+        dim (count v)
+        minrisk (move factor m dim)]
     minrisk))
+
+(def day15-1 (partial day15 1))
+(def day15-2 (partial day15 5))
