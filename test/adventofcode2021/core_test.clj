@@ -131,3 +131,14 @@
   (is (= (day16-1 "16-example3.txt") 23))
   (is (= (day16-1 "16-example4.txt") 31))
   (is (= (day16-1 "16.txt") 1007)))
+
+(deftest day16-2-test
+  (is (= (day16-2 "16-example2-1.txt") 3))
+  (is (= (day16-2 "16-example2-2.txt") 54))
+  (is (= (day16-2 "16-example2-3.txt") 7))
+  (is (= (day16-2 "16-example2-4.txt") 9))
+  (is (= (day16-2 "16-example2-5.txt") 1))
+  (is (= (day16-2 "16-example2-6.txt") 0))
+  (is (= (day16-2 "16-example2-7.txt") 0))
+  (is (= (day16-2 "16-example2-8.txt") 1))
+  (is (= (day16-2 "16.txt") 834151779165)))

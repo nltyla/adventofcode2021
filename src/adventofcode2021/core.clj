@@ -805,3 +805,25 @@
                             (+ (:version x) (reduce + (:value x)))
                             (:version x))
                           x)) packet)))
+
+(defn bool01
+  [bool]
+  (if bool 1 0))
+
+(defn day16-2
+  [name]
+  (let [v (inputs name day16-parse)
+        in (first v)
+        [_ packet] (parse-packet in)]
+    (w/postwalk (fn [x] (if (map? x)
+                          (let [v (:value x)]
+                          (condp = (:type x)
+                            0 (apply + v)
+                            1 (apply * v)
+                            2 (apply min v)
+                            3 (apply max v)
+                            4 v
+                            5 (bool01 (apply > v))
+                            6 (bool01 (apply < v))
+                            7 (bool01 (apply = v))))
+                          x)) packet)))
