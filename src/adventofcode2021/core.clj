@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.set :as set]
-            [clojure.data.priority-map :refer [priority-map]]))
+            [clojure.data.priority-map :refer [priority-map]]
+            [clojure.walk :as w]))
 
 (defn inputs
   "read file from resources, apply f to each line, return seq"
@@ -12,6 +13,10 @@
 (defn parse-int
   [s]
   (Integer/parseInt s))
+
+(defn parse-long
+  [s]
+  (Long/parseLong s))
 
 (defn parse-ints-csv
   [s]
@@ -71,7 +76,7 @@
 
 (defn parse-binary
   [s]
-  (Integer/parseInt s 2))
+  (Long/parseLong s 2))
 
 (defn freqs-binary
   [coll]
@@ -710,3 +715,93 @@
 
 (def day15-1 (partial day15 1))
 (def day15-2 (partial day15 5))
+
+(def hex {\0 "0000" \1 "0001" \2 "0010" \3 "0011" \4 "0100" \5 "0101" \6 "0110" \7 "0111" \8 "1000" \9 "1001" \A "1010" \B "1011" \C "1100" \D "1101" \E "1110" \F "1111"})
+
+(defn parse-three-bit
+  [[in packet] name]
+  (let [packet' (assoc packet name (parse-binary (subs in 0 3)))
+        in' (subs in 3)]
+    [in' packet']))
+
+(defn parse-literal
+  [[in packet]]
+  (let [groups (partition 5 in)
+        [lead-groups trail-groups] (split-with #(= \1 (first %)) groups)
+        all-groups (concat lead-groups (list (first trail-groups)))
+        stripped-groups (map rest all-groups)
+        str-number (apply str (flatten stripped-groups))
+        number (parse-binary str-number)
+        in' (subs in (* 5 (count all-groups)))
+        packet' (assoc packet :value number)]
+    [in' packet']))
+
+(declare parse-packet)
+
+(defn parse-subs-by-len
+  [[in packet]]
+  (let [len (parse-binary (subs in 0 15))
+        in' (subs in 15)]
+    (loop [in in'
+           sum 0
+           subs []]
+      (let [[in' subpkt] (parse-packet in)
+            sum' (+ sum (- (count in) (count in')))
+            subs' (conj subs subpkt)]
+        (if (or (= sum' len)
+                (nil? subpkt))
+          [in' (assoc packet :value subs')]
+          (recur in' sum' subs'))))
+    ))
+
+(defn parse-subs-by-num
+  [[in packet]]
+  (let [nr (parse-binary (subs in 0 11))
+        in' (subs in 11)]
+    (loop [in in'
+           i 1
+           subs []]
+      (let [[in' subpkt] (parse-packet in)
+            subs' (conj subs subpkt)]
+        (if (= i nr)
+          [in' (assoc packet :value subs')]
+          (recur in' (inc i) subs'))))
+    ))
+
+(defn parse-modes
+  [[in packet]]
+  (let [mode (first in)
+        in' (subs in 1)]
+    (condp = mode
+      \0 (parse-subs-by-len [in' packet])
+      \1 (parse-subs-by-num [in' packet]))))
+
+(defn parse-by-type
+  [[_ packet :as state]]
+  (condp = (:type packet)
+    4 (parse-literal state)
+    (parse-modes state)))
+
+(defn parse-packet
+  [in]
+  (let [state' (-> [in {}]
+                   (parse-three-bit :version)
+                   (parse-three-bit :type)
+                   (parse-by-type))]
+    state'))
+
+
+(defn day16-parse
+  [s]
+  (apply str (map #(hex %) s)))
+
+(defn day16-1
+  [name]
+  (let [v (inputs name day16-parse)
+        in (first v)
+        [_ packet] (parse-packet in)]
+    (w/postwalk (fn [x] (if (map? x)
+                          (if (vector? (:value x))
+                            (+ (:version x) (reduce + (:value x)))
+                            (:version x))
+                          x)) packet)))

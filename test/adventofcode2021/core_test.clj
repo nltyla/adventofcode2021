@@ -124,3 +124,10 @@
 (deftest day15-2-test
   (is (= (day15-2 "15-example.txt") 315))
   (is (= (day15-2 "15.txt") 2979)))
+
+(deftest day16-1-test
+  (is (= (day16-1 "16-example1.txt") 16))
+  (is (= (day16-1 "16-example2.txt") 12))
+  (is (= (day16-1 "16-example3.txt") 23))
+  (is (= (day16-1 "16-example4.txt") 31))
+  (is (= (day16-1 "16.txt") 1007)))
