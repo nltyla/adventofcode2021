@@ -142,3 +142,6 @@
   (is (= (day16-2 "16-example2-7.txt") 0))
   (is (= (day16-2 "16-example2-8.txt") 1))
   (is (= (day16-2 "16.txt") 834151779165)))
+
+(deftest day17-1-test
+  (is (= (day17-1 -80) 3160)))

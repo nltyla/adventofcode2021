@@ -796,6 +796,7 @@
   (apply str (map #(hex %) s)))
 
 (defn day16-1
+  "--- Day 16: Packet Decoder ---"
   [name]
   (let [v (inputs name day16-parse)
         in (first v)
@@ -811,19 +812,26 @@
   (if bool 1 0))
 
 (defn day16-2
+  "--- Day 16 Part Two: Packet Decoder ---"
   [name]
   (let [v (inputs name day16-parse)
         in (first v)
         [_ packet] (parse-packet in)]
     (w/postwalk (fn [x] (if (map? x)
                           (let [v (:value x)]
-                          (condp = (:type x)
-                            0 (apply + v)
-                            1 (apply * v)
-                            2 (apply min v)
-                            3 (apply max v)
-                            4 v
-                            5 (bool01 (apply > v))
-                            6 (bool01 (apply < v))
-                            7 (bool01 (apply = v))))
+                            (condp = (:type x)
+                              0 (apply + v)
+                              1 (apply * v)
+                              2 (apply min v)
+                              3 (apply max v)
+                              4 v
+                              5 (bool01 (apply > v))
+                              6 (bool01 (apply < v))
+                              7 (bool01 (apply = v))))
                           x)) packet)))
+
+(defn day17-1
+  "--- Day 17: Trick Shot ---"
+  [miny]
+  (let [d (Math/abs ^int miny)]
+    (/ (* (dec d) d) 2)))                                   ; sum of arithmetic series 0 + 1 + 2 + ... + d
