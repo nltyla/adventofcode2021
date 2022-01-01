@@ -145,3 +145,6 @@
 
 (deftest day17-1-test
   (is (= (day17-1 -80) 3160)))
+
+(deftest day17-2-test
+  (is (= (day17-2 282 314 -45 -80) 1928)))

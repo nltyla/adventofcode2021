@@ -835,3 +835,22 @@
   [miny]
   (let [d (Math/abs ^int miny)]
     (/ (* (dec d) d) 2)))                                   ; sum of arithmetic series 0 + 1 + 2 + ... + d
+
+
+(defn hit?
+  [vx vy xnear xfar ynear yfar]
+  (loop [xpos 0
+         ypos 0
+         vx' vx
+         vy' vy]
+    (cond (and (>= ynear ypos yfar) (<= xnear xpos xfar)) [vx vy]
+          (or (< ypos yfar) (> xpos xfar)) nil
+          :else (recur (+ xpos vx') (+ ypos vy') (if (zero? vx') 0 (dec vx')) (dec vy')))))
+
+(defn day17-2
+  "--- Day 17 Part Two: Trick Shot ---"
+  [xnear xfar ynear yfar]
+  (let [shots (for [vy (range ynear (- yfar))
+                    vx (range 1 xnear)] [vx vy])
+        hitcoll (filter some? (map (fn [[vx vy]] (hit? vx vy xnear xfar ynear yfar)) shots))]
+    (+ (count hitcoll) (* (inc (- xfar xnear)) (inc (- ynear yfar))))))
