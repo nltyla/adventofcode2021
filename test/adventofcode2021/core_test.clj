@@ -1,6 +1,7 @@
 (ns adventofcode2021.core-test
   (:require [clojure.test :refer :all]
-            [adventofcode2021.core :refer :all]))
+            [adventofcode2021.core :refer :all]
+            [clojure.zip :as z]))
 
 (deftest day1-1-test
   (is (= (day1-1 "1-example.txt") 7))
@@ -148,3 +149,25 @@
 
 (deftest day17-2-test
   (is (= (day17-2 282 314 -45 -80) 1928)))
+
+(defn explode-vec
+  [vec]
+  (-> (z/vector-zip vec)
+      explode
+      z/root))
+
+(defn split-vec
+  [vec]
+  (-> (z/vector-zip vec)
+      split
+      z/root))
+
+(deftest day18-1-test
+  (is (= (explode-vec [[[[[9,8],1],2],3],4]) [[[[0,9],2],3],4]))
+  (is (= (explode-vec [7,[6,[5,[4,[3,2]]]]]) [7,[6,[5,[7,0]]]]))
+  (is (= (explode-vec [[6,[5,[4,[3,2]]]],1]) [[6,[5,[7,0]]],3]))
+  (is (= (split-vec [[[[0,7],4],[15,[0,13]]],[1,1]]) [[[[0,7],4],[[7,8],[0,13]]],[1,1]]))
+  (is (= (split-vec [[[[0,7],4],[[7,8],[0,13]]],[1,1]]) [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]))
+  (is (= (reduce-vec [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]) [[[[0,7],4],[[7,8],[6,0]]],[8,1]]))
+  (is (= (day18-1 "18-example.txt") 4140))
+  (is (= (day18-1 "18.txt") 4072)))

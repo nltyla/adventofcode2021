@@ -3,7 +3,8 @@
             [clojure.string :as str]
             [clojure.set :as set]
             [clojure.data.priority-map :refer [priority-map]]
-            [clojure.walk :as w]))
+            [clojure.walk :as w]
+            [clojure.zip :as z]))
 
 (defn inputs
   "read file from resources, apply f to each line, return seq"
@@ -836,7 +837,6 @@
   (let [d (Math/abs ^int miny)]
     (/ (* (dec d) d) 2)))                                   ; sum of arithmetic series 0 + 1 + 2 + ... + d
 
-
 (defn hit?
   [vx vy xnear xfar ynear yfar]
   (loop [xpos 0
@@ -854,3 +854,113 @@
                     vx (range 1 xnear)] [vx vy])
         hitcoll (filter some? (map (fn [[vx vy]] (hit? vx vy xnear xfar ynear yfar)) shots))]
     (+ (count hitcoll) (* (inc (- xfar xnear)) (inc (- ynear yfar))))))
+
+(defn add-and-walk-back
+  [loc val fback steps]
+  (let [edited (z/edit loc + val)]
+    (reduce (fn [acc _] (fback acc)) edited (range steps))))
+
+(defn top?
+  [loc]
+  (nil? (z/path loc)))
+
+(defn add-to-nearest
+  [fforward fback fdone? loc]
+  (let [val (z/node loc)]
+    (loop [loc' (fforward loc)
+           n 1]
+      (if (fdone? loc')
+        loc
+        (if (z/branch? loc')
+          (recur (fforward loc') (inc n))
+          (add-and-walk-back loc' val fback n))))))
+
+(def add-to-nearest-right (partial add-to-nearest z/next z/prev z/end?))
+(def add-to-nearest-left (partial add-to-nearest z/prev z/next top?))
+
+(defn find-explodeable
+  [loc]
+  (if (z/end? loc)
+    nil
+    (if (and (z/branch? loc)
+             (= 4 (count (z/path loc))))
+      loc
+      (recur (z/next loc)))))
+
+(defn top
+  [loc]
+  (if-let [loc' (z/up loc)]
+    (recur loc')
+    loc))
+
+(defn explode
+  [loc]
+  (when-let [explodeable (find-explodeable loc)]
+    (-> explodeable
+        z/next
+        (add-to-nearest-left)
+        z/next
+        (add-to-nearest-right)
+        z/prev
+        z/prev
+        (z/replace 0))))
+
+(defn find-splittable
+  [loc]
+  (if (z/end? loc)
+    nil
+    (if (and (not (z/branch? loc))
+             (>= (z/node loc) 10))
+      loc
+      (recur (z/next loc)))))
+
+(defn split-num
+  [n]
+  (let [q (quot n 2)
+        r (rem n 2)]
+    [q (+ q r)]))
+
+(defn split
+  [loc]
+  (when-let [splittable (find-splittable loc)]
+    (z/edit splittable split-num)))
+
+(defn reducestep
+  "return reduced snail number or nil if it cannot be reduced"
+  [loc]
+  (if-let [exploded (explode loc)]
+    (top exploded)
+    (when-let [splitted (split loc)]
+      (top splitted))))
+
+(defn reducefully
+  [loc]
+  (if-let [loc' (reducestep loc)]
+    (recur loc')
+    loc))
+
+(defn reduce-vec
+  [vec]
+  (-> (z/vector-zip vec)
+      reducefully
+      z/root))
+
+(defn snail+
+  [v1 v2]
+  (reduce-vec [v1 v2]))
+
+(defn add-snail-numbers
+  [vecs]
+  (reduce snail+ vecs))
+
+(defn snail-magnitude
+  [vec]
+  (w/postwalk (fn [x] (if (vector? x)
+                        (+ (* 3 (first x)) (* 2 (second x)))
+                        x)) vec))
+
+(defn day18-1
+  "--- Day 18: Snailfish ---"
+  [name]
+  (let [v (inputs name read-string)]
+    (snail-magnitude (add-snail-numbers v))))
