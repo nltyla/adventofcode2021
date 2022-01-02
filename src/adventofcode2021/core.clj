@@ -4,7 +4,8 @@
             [clojure.set :as set]
             [clojure.data.priority-map :refer [priority-map]]
             [clojure.walk :as w]
-            [clojure.zip :as z]))
+            [clojure.zip :as z]
+            [clojure.math.combinatorics :as combo]))
 
 (defn inputs
   "read file from resources, apply f to each line, return seq"
@@ -964,3 +965,12 @@
   [name]
   (let [v (inputs name read-string)]
     (snail-magnitude (add-snail-numbers v))))
+
+(defn day18-2
+  "--- Day 18 Part Two: Snailfish ---"
+  [name]
+  (let [vecs (inputs name read-string)
+        combos (combo/permuted-combinations vecs 2)
+        sums (map (fn [[v1 v2]] (snail+ v1 v2)) combos)
+        mags (map #(snail-magnitude %) sums)]
+    (apply max mags)))
