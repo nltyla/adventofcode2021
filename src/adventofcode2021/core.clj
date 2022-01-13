@@ -5,7 +5,8 @@
             [clojure.data.priority-map :refer [priority-map]]
             [clojure.walk :as w]
             [clojure.zip :as z]
-            [clojure.math.combinatorics :as combo]))
+            [clojure.math.combinatorics :as combo]
+            [clojure.pprint :as pp]))
 
 (defn inputs
   "read file from resources, apply f to each line, return seq"
@@ -974,3 +975,95 @@
         sums (map (fn [[v1 v2]] (snail+ v1 v2)) combos)
         mags (map #(snail-magnitude %) sums)]
     (apply max mags)))
+
+(defn vdotv
+  [v1 v2]
+  (reduce + (map * v1 v2)))
+
+(defn mdotv
+  [M v]
+  (into [] (map #(vdotv % v)) M))
+
+(defn mdotm
+  [m1 m2]
+  (vec (apply map vector (map #(mdotv m1 %) (apply map vector m2)))))
+
+
+; right-handed coordinate system, positive rotation counter-clockwise
+(def m-ident [[1 0 0] [0 1 0] [0 0 1]])
+(def m-rot-z090 [[0 -1 0] [1 0 0] [0 0 1]])
+(def m-rot-z180 (mdotm m-rot-z090 m-rot-z090))
+(def m-rot-z270 (mdotm m-rot-z090 m-rot-z180))
+(def m-rot-x090 [[1 0 0] [0 0 -1] [0 1 0]])
+(def m-rot-x180 (mdotm m-rot-x090 m-rot-x090))
+(def m-rot-x270 (mdotm m-rot-x090 m-rot-x180))
+(def m-rot-y090 [[0 0 -1] [0 1 0] [1 0 0]])
+(def m-rot-y180 (mdotm m-rot-y090 m-rot-y090))
+(def m-rot-y270 (mdotm m-rot-y090 m-rot-y180))
+(def m-mirror-x [[-1 0 0] [0 1 0] [0 0 1]])
+(def m-mirror-y [[1 0 0] [0 -1 0] [0 0 1]])
+(def m-mirror-z [[1 0 0] [0 1 0] [0 0 -1]])
+(def all-rots [m-ident m-rot-x090 m-rot-x180 m-rot-x270])
+(def all-dirs [m-ident m-rot-x180 m-rot-z090 m-rot-z270 m-rot-y090 m-rot-y270])
+(def all-orientations (mapcat (fn [dir] (map (fn [rot] (mdotm rot dir)) all-rots)) all-dirs))
+
+(defn parse25
+  [s]
+  (map #(condp = %
+          \> :right
+          \v :down
+          \. :empty) s))
+
+(defn make-coord-map
+  [grid]
+  (into {} (filter
+             (fn [[_ item]] (not= \. item))
+             (apply concat (map-indexed (fn
+                                          [rowindex row]
+                                          (map-indexed (fn
+                                                         [colindex item]
+                                                         [[rowindex colindex] item])
+                                                       row))
+                                        grid)))))
+
+(defn nextgen
+  [target frow fcol gen dim]
+  (into {} (map (fn [[[row col] item :as cell]] (if (= target item)
+                                                  (let [nextpos [(frow row dim) (fcol col dim)]]
+                                                    (if (some? (get gen nextpos))
+                                                      cell
+                                                      [nextpos target]))
+                                                  cell))
+                gen)))
+
+(defn incmod [n dim] (mod (inc n) dim))
+(defn noop [n _] n)
+(def nextgenright (partial nextgen \> noop incmod))
+(def nextgendown (partial nextgen \v incmod noop))
+
+(defn nextgen25
+  [rowdim coldim gen]
+  (-> gen
+      (nextgenright coldim)
+      (nextgendown rowdim)))
+
+(defn printgen
+  [gen rowdim coldim]
+  (let [row (vec (repeat coldim \.))
+        grid (vec (repeat rowdim row))
+        pgrid (reduce (fn [acc [[row col] item]] (assoc-in acc [row col] item)) grid gen)
+        pgridstr (map #(apply str %) pgrid)]
+    (pp/pprint pgridstr)))
+
+(defn day25
+  "--- Day 25: Sea Cucumber ---"
+  [name]
+  (let [v (inputs name identity)
+        rowdim (count v)
+        coldim (count (first v))
+        gen0 (make-coord-map v)
+        gens (iterate (partial nextgen25 rowdim coldim) gen0)
+        genpairs (partition 2 1 gens)
+        end (take-while (fn [[a b]] (not= a b)) genpairs)
+        cnt (inc (count end))]
+    cnt))
